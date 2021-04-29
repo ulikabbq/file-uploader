@@ -58,6 +58,11 @@ app.get('/contents', (req, res) => {
 
 app.get('/get/*', (req, res) => {
   console.log(res.req.originalUrl)
+  // regex the original url to get the key
+
+  // use the key to stream the file back to the end user
+
+  res.send('coming soon'); 
 });
 
 app.get('/health', (req, res) => {
