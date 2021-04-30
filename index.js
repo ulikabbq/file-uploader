@@ -10,17 +10,37 @@ const BUCKET_NAME = process.env.BUCKET_NAME;
 const s3 = new AWS.S3();
 
 var upload = multer({
-    storage: multerS3({
-      s3: s3,
-      bucket: BUCKET_NAME,
-      metadata: function (req, file, cb) {
-        cb(null, {fieldName: file.fieldname});
-      },
-      key: function (req, file, cb) {
-        cb(null, `${file.originalname}`);
-      }
-    })
-  })
+  storage: multerS3({
+    s3: s3,
+    bucket: BUCKET_NAME,
+    metadata: function (req, file, cb) {
+      cb(null, {fieldName: file.fieldname});
+    },
+    key: function (req, file, cb) {
+      const cleanFile = file.originalname.replace(path.extname(file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_")
+      const fileName = cleanFile + path.extname(file.originalname)
+      console.log(fileName)
+      cb(null, fileName);
+    },
+  }),
+  fileFilter: function(_req, file, cb){
+    checkFileType(file, cb);
+  }
+})
+
+function checkFileType(file, cb){
+  // Allowed ext
+  const filetypes = /tgz|zip/;
+  // Check ext
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+  if(extname){
+    return cb(null,true);
+  } else {
+    cb('Error: Diagnostic Bundles Only!');
+  }
+}
+
 
 const app = new express();
 
