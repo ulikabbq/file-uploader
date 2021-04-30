@@ -56,13 +56,30 @@ app.get('/contents', (req, res) => {
 
 });
 
-app.get('/get/*', (req, res) => {
+app.get('/get/*', async (req, res) => {
   console.log(res.req.originalUrl)
   // regex the original url to get the key
+  const path = String(res.req.originalUrl)
+  const keyString = path.split('/')[2]
+  console.log(keyString)
 
   // use the key to stream the file back to the end user
+  var options = {
+      Bucket: BUCKET_NAME,
+      Key: keyString
+  }
+  const fileStream = s3.getObject(options).createReadStream()
+  fileStream.on('error', function (err){
+      res.status(404),
+      res.end(),
+      console.error(err)
+  })
+  fileStream.pipe(res).on('error', function (err) {
+      console.error('file stream: ', err)
+  }).on('close', function() {
+      console.log('done')
+  })
 
-  res.send('coming soon'); 
 });
 
 app.get('/health', (req, res) => {
