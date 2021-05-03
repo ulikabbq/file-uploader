@@ -49,8 +49,11 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', upload.single('file-to-upload'), function(req, res, next) {
-    console.log(req)
-    res.send('Successfully uploaded ' + req.file.originalname )
+    const reqCleanFile = req.file.originalname.replace(path.extname(req.file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_")
+    const fileNameForLog = reqCleanFile + path.extname(req.file.originalname)
+    console.log(fileNameForLog + ' diagnostic file has been uploaded to http://cdkst-fileu-1hc5ak44tlnlg-532682283.us-east-1.elb.amazonaws.com/get/' + fileNameForLog)
+    
+    res.send('Successfully uploaded ' + req.file.originalname + ' and renamed to ' + fileNameForLog)
 })
 
 app.get('/contents', (req, res) => {
@@ -70,7 +73,7 @@ app.get('/contents', (req, res) => {
   };
 
   dataFromS3(BUCKET_NAME).then(function(result) {
-    console.log(result); 
+    //console.log(result); 
     res.send(result); 
   })
 
