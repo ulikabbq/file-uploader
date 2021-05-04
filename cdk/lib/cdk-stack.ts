@@ -139,6 +139,8 @@ export class CdkStack extends cdk.Stack {
       publicLoadBalancer: true 
     });
 
+    fargate.targetGroup.setAttribute('deregistration_delay.timeout_seconds', '15');
+
     fargate.targetGroup.configureHealthCheck({
       path: '/health'
     })
