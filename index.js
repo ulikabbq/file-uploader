@@ -18,16 +18,35 @@ var upload = multer({
       cb(null, {fieldName: file.fieldname});
     },
     key: function (req, file, cb) {
-      const cleanFile = file.originalname.replace(path.extname(file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_")
-      const fileName = cleanFile + '-' + date + path.extname(file.originalname)
-      console.log(fileName)
-      cb(null, fileName);
+      setFileName(file, cb);
     },
   }),
   fileFilter: function(_req, file, cb){
     checkFileType(file, cb);
   }
 })
+
+function setFileName(file, cb){
+  const cleanFile = file.originalname.replace(path.extname(file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_")
+  const fileName = cleanFile + path.extname(file.originalname)
+  console.log(fileName)
+  
+  const opts = {
+    "Bucket": BUCKET_NAME,
+    "Key": fileName
+  };
+
+  s3.headObject(opts, function(err, data) {
+    if (err) {
+      //console.log(err, err.stack);
+      return cb(null, fileName);;
+    } else {
+      //console.log(data)
+      const fileRename = cleanFile + date + path.extname(file.originalname)
+      return cb(null, fileRename);;
+    }
+  });
+}
 
 function checkFileType(file, cb){
   // Allowed ext
@@ -50,11 +69,17 @@ app.get('/', function(req, res) {
 });
 
 app.post('/', upload.single('file-to-upload'), function(req, res, next) {
-    const reqCleanFile = req.file.originalname.replace(path.extname(req.file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_")
-    const fileNameForLog = reqCleanFile + '-' + date + path.extname(req.file.originalname)
-    console.log(fileNameForLog + ' diagnostic file has been uploaded to http://cdkst-fileu-1hc5ak44tlnlg-532682283.us-east-1.elb.amazonaws.com/get/' + fileNameForLog)
-    
-    res.send('Successfully uploaded ' + req.file.originalname + ' and renamed to ' + fileNameForLog)
+  const keyName = req.file.key
+  const originalName = req.file.originalname
+
+  if (keyName === originalName){
+    res.send('Successfully uploaded ' + keyName )
+  } else {
+    res.send('Successfully uploaded ' + originalName + ' and renamed to ' + keyName )
+  }
+  
+  // log line for logstream to pickup and send to slack
+  console.log('diagnostic file has been uploaded to http://cdkst-fileu-1hc5ak44tlnlg-532682283.us-east-1.elb.amazonaws.com/get/' + keyName)
 })
 
 app.get('/contents', (req, res) => {
