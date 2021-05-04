@@ -72,7 +72,7 @@ app.get('/', function(req, res) {
 
 app.post('/', upload.single('file-to-upload'), function(req, res, next) {
   const keyName = req.file.key
-  const originalName = req.file.originalname
+  const originalName = req.file.originalname.replace(path.extname(req.file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_") + path.extname(req.file.originalname)
 
   if (keyName === originalName){
     res.send('Successfully uploaded ' + keyName )
