@@ -26,6 +26,7 @@ var upload = multer({
   }
 })
 
+//set file name 
 function setFileName(file, cb){
   const cleanFile = file.originalname.replace(path.extname(file.originalname), "").toLowerCase().replace(/[^A-Z0-9]+/ig, "_")
   const fileName = cleanFile + path.extname(file.originalname)
@@ -48,6 +49,7 @@ function setFileName(file, cb){
   });
 }
 
+//verify ext is allowed
 function checkFileType(file, cb){
   // Allowed ext
   const filetypes = /tgz|zip/;
